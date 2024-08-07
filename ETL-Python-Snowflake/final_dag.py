@@ -27,7 +27,7 @@ with dag:
 
     move_file_to_s3 = BashOperator(
         task_id = "move_file_to_s3",
-        bash_command = 'aws s3 mv {{ ti.xcom_pull("extract_news_info")}} s3://susmita-bucket1'
+        bash_command = 'aws s3 mv {{ ti.xcom_pull("extract_news_info")}} s3://snowflake-s3-bucket01'
     )
 
     snowflake_create_table = SnowflakeOperator(
@@ -36,7 +36,7 @@ with dag:
             SELECT
             ARRAY_AGG(OBJECT_CONSTRUCT(*))
             FROM TABLE(INFER_SCHEMA
-            (LOCATION => '@current_news.PUBLIC.s3_snowpipe', FILE_FORMAT = 'parquet_format')
+            (LOCATION => '@current_news.PUBLIC.S3_stage_test', FILE_FORMAT = 'parquet_format')
             )
         )''',
         snowflake_conn_id = 'snowflake_conn'
@@ -45,7 +45,7 @@ with dag:
 
     snowflake_copy = SnowflakeOperator(
         task_id = 'snowflake_copy',
-        sql = '''COPY INTO current_news.PUBLIC.News_Inflation FROM @current_news.PUBLIC.s3_snowpipe
+        sql = '''COPY INTO current_news.PUBLIC.News_Inflation FROM @current_news.PUBLIC.S3_stage_test
         MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE FILE_FORMAT = parquet_format
         ''',
         snowflake_conn_id = 'snowflake_conn'
