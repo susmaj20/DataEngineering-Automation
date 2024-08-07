@@ -1,1 +1,18 @@
+create database if not exists current_news; --- Creating a new working database
 
+use current_news; --- Using the database created
+
+create or replace file format parquet_format TYPE = parquet; --- creating the file format for external stage
+
+CREATE OR REPLACE STAGE S3_stage_test --- Creating the external stage for AWS S3 bucket
+  URL='s3://snowflake-s3-bucket01/'
+  CREDENTIALS=(AWS_KEY_ID='xxxxxxxxxxxxxxxx'        
+  AWS_SECRET_KEY='xxxxxxxxxxxxxxxxxxxx')
+  ENCRYPTION=(TYPE='AWS_SSE_KMS' KMS_KEY_ID = 'aws/key');
+
+list @current_news.PUBLIC.S3_stage_test; --- Listing the external stage to see available files from AWS S3 bucket
+
+
+SELECT
+TOP 100 *
+FROM NEWS_INFLATION;
