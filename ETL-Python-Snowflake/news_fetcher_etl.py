@@ -9,7 +9,7 @@ import uuid
 
 def runner():
     today = date.today()
-    api_key = 'ee4463dd84ff4f9ba227844fb748a306'
+    api_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
     base_url = 'https://newsapi.org/v2/everything?q={}&from={}&to={}&sortBy=popularity&apiKey={}&language=en'
     #print(base_url)
