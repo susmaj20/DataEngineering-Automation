@@ -1,18 +1,85 @@
-create database if not exists current_news; --- Creating a new working database
+CREATE DATABASE IF NOT EXISTS REDFIN_DATABASE_1; 
 
-use current_news; --- Using the database created
+CREATE SCHEMA REDFIN_SCHEMA; -- Schema for the Redfin tables
 
-create or replace file format parquet_format TYPE = parquet; --- creating the file format for external stage
+CREATE OR REPLACE TABLE REDFIN_DATABASE_1.REDFIN_SCHEMA.REDFIN_TABLE (
+period_begin DATE,
+period_end DATE,
+period_duration INT,
+region_type STRING,
+region_type_id INT,
+table_id INT,
+is_seasonally_adjusted STRING,
+city STRING,
+state STRING,
+state_code STRING,
+property_type STRING,
+property_type_id INT,
+median_sale_price FLOAT,
+median_list_price FLOAT,
+median_ppsf FLOAT,
+median_list_ppsf FLOAT,
+homes_sold FLOAT,
+inventory FLOAT,
+months_of_supply FLOAT,
+median_dom FLOAT,
+avg_sale_to_list FLOAT,
+sold_above_list FLOAT,
+parent_metro_region_metro_code STRING,
+last_updated DATETIME,
+period_begin_in_years STRING,
+period_end_in_years STRING,
+period_begin_in_months STRING,
+period_end_in_months STRING
+);
 
-CREATE OR REPLACE STAGE S3_stage_test --- Creating the external stage for AWS S3 bucket
-  URL='s3://snowflake-s3-bucket01/'
-  CREDENTIALS=(AWS_KEY_ID='xxxxxxxxxxxxxxxx'        
-  AWS_SECRET_KEY='xxxxxxxxxxxxxxxxxxxx')
-  ENCRYPTION=(TYPE='AWS_SSE_KMS' KMS_KEY_ID = 'aws/key');
+SELECT COUNT(*) FROM redfin_database_1.redfin_schema.redfin_table; --- 4304336M records
 
-list @current_news.PUBLIC.S3_stage_test; --- Listing the external stage to see available files from AWS S3 bucket
+CREATE SCHEMA FILE_FORMAT_SCHEMA; --Schema for storing all file formats
 
+CREATE OR REPLACE file format REDFIN_DATABASE_1.FILE_FORMAT_SCHEMA.FORMAT_CSV
+    type = 'CSV'
+    field_delimiter = ','
+    RECORD_DELIMITER = '\n'
+    skip_header = 1
+    -- error_on_column_count_mismatch = FALSE;
 
+CREATE SCHEMA EXTERNAL_STAGE_SCHEMA; --Schema for all external stages
+
+CREATE OR REPLACE STAGE REDFIN_DATABASE_1.EXTERNAL_STAGE_SCHEMA.REDFIN_EXT_STAGE_YML 
+    url="s3://redfin-analytics-transformed-bucket/"
+    credentials=(aws_key_id='xxxxxxxxxxxxxxxxxxx'
+    aws_secret_key='xxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    FILE_FORMAT = REDFIN_DATABASE_1.FILE_FORMAT_SCHEMA.FORMAT_CSV;
+
+CREATE OR REPLACE SCHEMA REDFIN_DATABASE_1.SNOWPIPE_SCHEMA; 
+
+CREATE OR REPLACE PIPE REDFIN_DATABASE_1.SNOWPIPE_SCHEMA.REDFIN_SNOWPIPE -- Creating Snowpipe object for continuous data ingestion from S3
+auto_ingest = TRUE
+AS 
+COPY INTO REDFIN_DATABASE_1.REDFIN_SCHEMA.REDFIN_TABLE
+FROM @REDFIN_DATABASE_1.EXTERNAL_STAGE_SCHEMA.REDFIN_EXT_STAGE_YML;
+
+DESC PIPE REDFIN_DATABASE_1.SNOWPIPE_SCHEMA.REDFIN_SNOWPIPE;
+
+CREATE OR REPLACE TABLE REDFIN_TABLE_FINAL -- Creating the final table for visualization in Power BI
+AS
+WITH CTE_1 AS 
+(SELECT
+*,
+ROW_NUMBER() OVER(ORDER BY CITY) AS ID
+FROM REDFIN_TABLE)
 SELECT
-TOP 100 *
-FROM NEWS_INFLATION;
+ID, CITY, STATE, PROPERTY_TYPE, MEDIAN_SALE_PRICE AS SALE_PRICE,
+MEDIAN_LIST_PRICE, MEDIAN_PPSF, MEDIAN_LIST_PPSF, HOMES_SOLD, MEDIAN_DOM,
+AVG_SALE_TO_LIST, PERIOD_END_IN_YEARS AS SALE_YEAR, 
+PERIOD_END_IN_MONTHS AS SALE_MONTH
+FROM CTE_1;
+
+SELECT * FROM REDFIN_TABLE_FINAL LIMIT 1000; -- Final Snowflake table
+
+
+
+
+
+
