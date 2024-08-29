@@ -1,6 +1,13 @@
 # DataEngineering-Automation
 Author - Susmita Majumdar
 
+<img width="380" alt="image" src="https://github.com/user-attachments/assets/97c9c2b7-2f55-40da-8cf4-a1a038b43937">
+
+
+
+
+
+
 This is a ETL project which does the following steps - 
 1. It extracts news information from "News API" - 'newsapi.org' based on the keywords / input provided in the Python Code - 'news_fetcher_etl.py'.
 2. Then the extracted dataframe is moved to AWS S3 bucket in the form of a parquet file using Airflow BashOperator command.
