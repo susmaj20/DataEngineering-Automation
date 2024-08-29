@@ -1,7 +1,7 @@
 # DataEngineering-Automation
 Author - Susmita Majumdar
 
-<img width="380" alt="image" src="https://github.com/user-attachments/assets/97c9c2b7-2f55-40da-8cf4-a1a038b43937">
+<img width="1000" alt="image" src="https://github.com/user-attachments/assets/97c9c2b7-2f55-40da-8cf4-a1a038b43937">
 
 
 
